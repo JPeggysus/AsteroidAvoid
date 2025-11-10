@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Asteroid Avoid: Battle AI For Control Of The Cosmos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script> 
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    #mobileControls{
+      display:none;
+      position:absolute;
+      top:100%;
+      left:50%;
+      transform:translateX(-50%);
+      margin-top:20px;
+      z-index:9999;
+      user-select:none;
+      touch-action:none;
+      width:90%;
+      max-width:400px
+    }
+    .mobile-btn-row{
+      display:flex;
+      justify-content:center;
+      margin:8px 0
+    }
+    .mobile-btn{
+      font-size:50px;
+      padding:12px 24px;
+      margin:0 8px;
+      cursor:pointer;
+      background:rgba(255,255,255,.2);
+      border:3px solid #fff;
+      border-radius:12px;
+      color:#fff;
+      min-width:140px;
+      min-height:140px;
+      display:flex;
+      align-items:center;
+      justify-content:center
+    }
+    .mobile-btn:active{background:rgba(255,255,255,.4)}
+    #mobileEnter{
+      font-size:24px;
+      padding:12px 24px;
+      margin-top:20px;
+      width:40%;
+      background:rgba(0,255,0,.2);
+      border:3px solid #0f0;
+      font-family:'Orbitron',sans-serif;
+      animation:pulse 1.5s infinite
+    }
+    @keyframes pulse{
+      0%{opacity:.7}
+      50%{opacity:1}
+      100%{opacity:.7}
+    }
+  </style>
+</head>
+
+<body>
+  <svg width="0" height="0" class="hidden">
+    <symbol xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" id="icons8-refresh">
+      <polyline fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" points="18.277,30.309 12,36.586 5.715,30.301"/>
+      <path fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" d="M31,6H20c-4.4,0-8,3.6-8,8v23"/>
+      <polyline fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" points="31.703,19.719 38,13.422 44.281,19.703"/>
+      <path fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" d="M19,44h11c4.4,0,8-3.6,8-8V13"/>
+    </symbol>
+
+    <symbol id="pause-button-svgrepo-com (1)" viewBox="0 0 512 512" fill="currentColor">
+      <path d="M440.7,501H71.2C38,501,11,474,11,440.8V71.2C11,38,38,11,71.2,11h369.5C474,11,501,38,501,71.2v369.5 C501,474,474,501,440.7,501z M71.2,51.8c-10.7,0-19.4,8.7-19.4,19.4v369.5c0,10.7,8.7,19.4,19.4,19.4h369.5 c10.7,0,19.4-8.7,19.4-19.4V71.2c0-10.7-8.7-19.4-19.4-19.4H71.2z"/>
+      <path d="m182.4,385.5c-11.3,0-20.4-9.1-20.4-20.4v-218.2c0-11.3 9.1-20.4 20.4-20.4 11.3,0 20.4,9.1 20.4,20.4v218.2 c0,11.3-9.1,20.4-20.4,20.4z"/>
+      <path d="m329.6,385.5c-11.3,0-20.4-9.1-20.4-20.4v-218.2c0-11.3 9.1-20.4 20.4-20.4s20.4,9.1 20.4,20.4v218.2 c0,11.3-9.2,20.4-20.4,20.4z"/>
+    </symbol>
+
+    <symbol id="play-svgrepo-com" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16.6582 9.28638C18.098 10.1862 18.8178 10.6361 19.0647 11.2122C19.2803 11.7152 19.2803 12.2847 19.0647 12.7878C18.8178 13.3638 18.098 13.8137 16.6582 14.7136L9.896 18.94C8.29805 19.9387 7.49907 20.4381 6.83973 20.385C6.26501 20.3388 5.73818 20.0469 5.3944 19.584C5 19.053 5 18.1108 5 16.2264V7.77357C5 5.88919 5 4.94701 5.3944 4.41598C5.73818 3.9531 6.26501 3.66111 6.83973 3.6149C7.49907 3.5619 8.29805 4.06126 9.896 5.05998L16.6582 9.28638Z" stroke="none" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+
+    <symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="volume-xmark-svgrepo-com">
+      <path d="M16 9.50009L21 14.5001M21 9.50009L16 14.5001M4.6 9.00009H5.5012C6.05213 9.00009 6.32759 9.00009 6.58285 8.93141C6.80903 8.87056 7.02275 8.77046 7.21429 8.63566C7.43047 8.48353 7.60681 8.27191 7.95951 7.84868L10.5854 4.69758C11.0211 4.17476 11.2389 3.91335 11.4292 3.88614C11.594 3.86258 11.7597 3.92258 11.8712 4.04617C12 4.18889 12 4.52917 12 5.20973V18.7904C12 19.471 12 19.8113 11.8712 19.954C11.7597 20.0776 11.594 20.1376 11.4292 20.114C11.239 20.0868 11.0211 19.8254 10.5854 19.3026L7.95951 16.1515C7.60681 15.7283 7.43047 15.5166 7.21429 15.3645C7.02275 15.2297 6.80903 15.1296 6.58285 15.0688C6.32759 15.0001 6.05213 15.0001 5.5012 15.0001H4.6C4.03995 15.0001 3.75992 15.0001 3.54601 14.8911C3.35785 14.7952 3.20487 14.6422 3.10899 14.4541C3 14.2402 3 13.9601 3 13.4001V10.6001C3 10.04 3 9.76001 3.10899 9.54609C3.20487 9.35793 3.35785 9.20495 3.54601 9.10908C3.75992 9.00009 4.03995 9.00009 4.6 9.00009Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+
+    <symbol fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="volume-max-svgrepo-com">
+      <path d="M16.0004 9.00009C16.6281 9.83575 17 10.8745 17 12.0001C17 13.1257 16.6281 14.1644 16.0004 15.0001M18 5.29177C19.8412 6.93973 21 9.33459 21 12.0001C21 14.6656 19.8412 17.0604 18 18.7084M4.6 9.00009H5.5012C6.05213 9.00009 6.32759 9.00009 6.58285 8.93141C6.80903 8.87056 7.02275 8.77046 7.21429 8.63566C7.43047 8.48353 7.60681 8.27191 7.95951 7.84868L10.5854 4.69758C11.0211 4.17476 11.2389 3.91335 11.4292 3.88614C11.594 3.86258 11.7597 3.92258 11.8712 4.04617C12 4.18889 12 4.52917 12 5.20973V18.7904C12 19.471 12 19.8113 11.8712 19.954C11.7597 20.0776 11.594 20.1376 11.4292 20.114C11.239 20.0868 11.0211 19.8254 10.5854 19.3026L7.95951 16.1515C7.60681 15.7283 7.43047 15.5166 7.21429 15.3645C7.02275 15.2297 6.80903 15.1296 6.58285 15.0688C6.32759 15.0001 6.05213 15.0001 5.5012 15.0001H4.6C4.03995 15.0001 3.75992 15.0001 3.54601 14.8911C3.35785 14.7952 3.20487 14.6422 3.10899 14.4541C3 14.2402 3 13.9601 3 13.4001V10.6001C3 10.04 3 9.76001 3.10899 9.54609C3.20487 9.35793 3.35785 9.20495 3.54601 9.10908C3.75992 9.00009 4.03995 9.00009 4.6 9.00009Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
+
+  <div id="canvasContainer">
+    <div id="highScoreDisplay">High Score: <span id="highScoreValue">0</span></div>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <div id="instructionOverlay" class="overlay">
+      <div class="overlay-content">
+        <p style="font-size:46px;font-weight:bold">INSTRUCTIONS:</p>
+        <p style="font-size:30px">Avoid asteroids to survive</p>
+        <p style="font-size:28px">Move with arrow keys</p>
+        <div id="keyRow">
+          <div id="keyLeft"  class="key">←</div>
+          <div id="keyUp"    class="key">↑</div>
+          <div id="keyRight" class="key">→</div>
+          <div id="keyDown"  class="key">↓</div>
+        </div>
+        <p style="font-size:30px">Earn 1 life back every 5000 points</p>
+        <div class="final-line">
+          <div class="ship-box">
+            <span>YOU</span>
+            <img src="assets/spaceship.png" alt="YOU">
+            <div style="color:red;font-size:24px">♥ ♥ ♥</div>
+          </div>
+          <div>
+            <p style="font-size:30px;margin:0">Can you beat the bot?</p>
+            <p style="font-size:30px;margin:0">Will AI defeat you?</p>
+            <p class="flash" style="font-size:30px;margin:0">Press ENTER to start</p>
+          </div>
+          <div class="ship-box">
+            <span>BOT</span>
+            <img src="assets/bot.png" alt="BOT">
+            <div style="color:red;font-size:24px">♥</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameOverOverlay" class="overlay" style="display:none">
+      <p id="gameOverTitle">GAME OVER</p>
+      <p id="restartText">Press ENTER to restart</p>
+    </div>
+
+    <div id="pauseOverlay" class="overlay" style="display:none">
+      <p id="pauseText"   style="font-size:70px;margin-bottom:0">PAUSED</p>
+      <p id="unpauseText" style="font-size:25px">Press SPACE to resume</p>
+    </div>
+
+    <div id="mobileControls">
+      <div class="mobile-btn-row"><button id="mobileUp"    class="mobile-btn">▲</button></div>
+      <div class="mobile-btn-row">
+        <button id="mobileLeft"  class="mobile-btn">◀</button>
+        <button id="mobileDown"  class="mobile-btn">▼</button>
+        <button id="mobileRight" class="mobile-btn">▶</button>
+      </div>
+      <div class="mobile-btn-row"><button id="mobileEnter" class="mobile-btn">START / RESTART</button></div>
+    </div>
+  </div>
+
+  <script>
+    window.gamePaused=false;
+    window.gameRunning=false;
+    window.gameOver=false;
+
+    const maxLives=3;
+    let lives=maxLives,flashTimer=0,nextExtraLifeScore=5000,storedHighScore=0,newHighScoreShown=false,botWinTime=null;
+    const winMessageDuration=3000;
+    let extraLifeAnim={active:false,startX:0,startY:0,x:0,y:0,targetX:0,targetY:0,time:0,totalTime:60,trail:[]};
+    let gameLoopId=null;
+    let gameMusic=new Audio("assets/GameMusic.wav");gameMusic.loop=true;
+    let collisionSound=new Audio("assets/Collision.mp3");
+    let heartPathSound=new Audio("assets/HeartPath.mp3");
+    let plusOneSound=new Audio("assets/PlusOne.mp3");
+    let clickSound=new Audio("assets/Click.mp3");
+    let gameoverAudio=new Audio("assets/GameOver.mp3");
+
+    class AsteroidAvoidanceEnv{
+      constructor(width=600,height=400,numAsteroids=7,numStars=100){
+        this.width=width;this.height=height;this.numAsteroids=numAsteroids;this.numStars=numStars;
+        this.agentRadius=15;this.asteroidRadius=10;this.maxSteps=1e9;this.steps=0;this.asteroids=[];this.stars=[]
+      }
+      reset(){
+        this.steps=0;this.asteroids=[];
+        for(let i=0;i<this.numAsteroids;i++){
+          this.asteroids.push({x:Math.floor(Math.random()*this.width),y:Math.floor(-Math.random()*this.height),speed:2.5*(2+Math.floor(Math.random()*3))})
+        }
+        this.stars=[];
+        for(let i=0;i<this.numStars;i++){
+          this.stars.push({x:Math.floor(Math.random()*this.width),y:Math.floor(Math.random()*this.height)})
+        }
+      }
+    }
+
+    function getObservationForAgent(env,agentPos){
+      let norm_x=agentPos.x/env.width*2-1,norm_y=agentPos.y/env.height*2-1,asteroid_features=[];
+      for(let ast of env.asteroids){
+        let rel_x=(ast.x-agentPos.x)/env.width,rel_y=(ast.y-agentPos.y)/env.height,norm_speed=ast.speed/12.5;
+        asteroid_features.push(rel_x,rel_y,norm_speed)
+      }
+      return[norm_x,norm_y,...asteroid_features]
+    }
+
+    function updateAsteroids(env){
+      for(let ast of env.asteroids){
+        ast.y+=ast.speed;
+        if(ast.y>env.height+50){
+          ast.x=Math.floor(Math.random()*env.width);
+          ast.y=Math.floor(-Math.random()*env.height);
+          ast.speed=2.5*(2+Math.floor(Math.random()*3))
+        }
+      }
+    }
+
+    function checkCollision(env,agentPos){
+      let sumRadii=env.agentRadius+env.asteroidRadius,minDist=Infinity;
+      for(let ast of env.asteroids){
+        let dx=ast.x-agentPos.x,dy=ast.y-agentPos.y,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<minDist)minDist=dist
+      }
+      return minDist<sumRadii
+    }
+
+    class BotAgent{
+      constructor(){
+        this.epsilon=0;
+        this.model=null;
+        this.outputNodeName='Identity:0';
+        this.expectedInputLength=23;
+        this.isWarmingUp=false;
+        this.init()
+      }
+      async init() {
+        if (this.isWarmingUp || this.model) return;
+        this.isWarmingUp = true;
+        try {
+          let modelPath;
+          const {
+            protocol,
+            hostname,
+            pathname
+          } = window.location;
+          if (hostname.includes('github.io')) {
+            const repoName = pathname.split('/')[1];
+            modelPath = `${protocol}//${hostname}/${repoName}/model.json`;
+          } else {
+            modelPath = 'model.json';
+          }
+          this.model = await tf.loadGraphModel(modelPath);
+          tf.tidy(() => {
+            const d = tf.zeros([1, this.expectedInputLength], 'float32');
+            this.model.execute(d, this.outputNodeName)
+          });
+        } catch (err) {
+          this.model = null
+        }
+        this.isWarmingUp = false
+      }
+      async selectAction(observation){
+        if(this.isWarmingUp||!this.model||!observation||observation.length!==this.expectedInputLength)return 0;
+        return tf.tidy(()=>{
+          const inp=tf.tensor([observation],[1,this.expectedInputLength],'float32');
+          let out=this.model.execute(inp,this.outputNodeName);
+          if(Array.isArray(out))out=out[0];
+          return out.argMax(1).dataSync()[0]
+        })
+      }
+    }
+
+    const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");
+    const spaceshipImg=new Image();spaceshipImg.src='assets/spaceship.png';
+    const asteroidImg=new Image(); asteroidImg.src='assets/asteroid.png';
+    const explosionImg=new Image();explosionImg.src='assets/explosion.png';
+    const botImg=new Image();      botImg.src='assets/bot.png';
+
+    const spaceshipWidth=40,spaceshipHeight=40,asteroidWidth=30,asteroidHeight=30,explosionWidth=90,explosionHeight=90;
+
+    let envInstance=new AsteroidAvoidanceEnv(600,400,7,100);envInstance.reset();
+    let humanPos={x:envInstance.width/2,y:envInstance.height-200},botPos={x:envInstance.width/2,y:envInstance.height-200};
+    let humanAlive=true,botAlive=true,humanExploded=false,botExploded=false,humanExplosionTimer=0,botExplosionTimer=0;
+    const explosionDuration=30;
+    let humanLastMove={x:0,y:0},margin=15,botAgent=window.botAgent=new BotAgent(),globalSteps=0;
+
+    const highScoreValueEl=document.getElementById("highScoreValue");
+    let keys={};
+    window.addEventListener("keydown",e=>{keys[e.code]=true});
+    window.addEventListener("keyup",e=>{keys[e.code]=false});
+
+    const FPS=60,intervalMs=1000/FPS;
+    function showInstructions(){instructionOverlay.style.display="flex"}
+    function hideInstructions(){instructionOverlay.style.display="none"}
+    window.showInstructions=showInstructions;
+
+    document.addEventListener("keydown",e=>{
+      if((e.code==="Enter"||e.code==="NumpadEnter")&&!window.countdownActive){
+        if(window.gameRunning){endCurrentGame();startCountdown()}
+        else{
+          if(instructionOverlay.style.display!=="none")hideInstructions();
+          else if(gameOverOverlay.style.display!=="none")gameOverOverlay.style.display="none";
+          startCountdown()
+        }
+      }
+    });
+
+    function endCurrentGame(){
+      if(gameLoopId){clearTimeout(gameLoopId);gameLoopId=null}
+      window.gameRunning=false;
+      gameMusic.pause();gameMusic.currentTime=0;
+      heartPathSound.pause();heartPathSound.currentTime=0
+    }
+    window.endCurrentGame=endCurrentGame;
+
+    function startGame(){
+      endCurrentGame();envInstance.reset();
+      humanPos={x:envInstance.width/2,y:envInstance.height-200};
+      botPos={x:envInstance.width/2,y:envInstance.height-200};
+      humanAlive=botAlive=true;humanExploded=botExploded=false;
+      humanExplosionTimer=botExplosionTimer=0;globalSteps=0;lives=maxLives;
+      nextExtraLifeScore=5000;window.gameOver=newHighScoreShown=extraLifeAnim.active=false;
+      extraLifeAnim.trail=[];extraLifeAnim.time=0;extraLifeAnim.totalTime=60;botWinTime=null;
+      window.gamePaused=false;pauseOverlay.style.display="none";gameOverOverlay.style.display="none";
+      instructionOverlay.style.display="none";gameMusic.currentTime=0;gameMusic.play();
+      window.gameRunning=true;gameLoop()
+    }
+    window.startGame=startGame;
+
+    function showGameOver(){
+      gameMusic.pause();gameMusic.currentTime=0;gameoverAudio.currentTime=0;gameoverAudio.play();
+      if(globalSteps>storedHighScore)storedHighScore=globalSteps;
+      highScoreValueEl.textContent=storedHighScore;
+      document.getElementById("highScoreDisplay").style.display="block";
+      gameOverOverlay.style.display="flex"
+    }
+    window.showGameOver=showGameOver;
+
+    function updateExtraLifeAnim(){
+      if(!extraLifeAnim.active)return;
+      extraLifeAnim.time++;
+      let p=Math.min(extraLifeAnim.time/extraLifeAnim.totalTime,1),
+          lx=extraLifeAnim.startX+p*(extraLifeAnim.targetX-extraLifeAnim.startX),
+          ly=extraLifeAnim.startY+p*(extraLifeAnim.targetY-extraLifeAnim.startY),
+          amp=20*(1-p),off=amp*Math.sin(2*Math.PI*4*p),
+          dx=extraLifeAnim.targetX-extraLifeAnim.startX,
+          dy=extraLifeAnim.targetY-extraLifeAnim.startY,
+          len=Math.sqrt(dx*dx+dy*dy)||1,
+          perpX=-dy/len,perpY=dx/len;
+      extraLifeAnim.x=lx+perpX*off;extraLifeAnim.y=ly+perpY*off;
+      if(extraLifeAnim.time%2===0)extraLifeAnim.trail.push({x:extraLifeAnim.x,y:extraLifeAnim.y});
+      if(extraLifeAnim.trail.length>5)extraLifeAnim.trail.shift();
+      if(p>=1){
+        extraLifeAnim.active=false;lives++;
+        heartPathSound.pause();heartPathSound.currentTime=0;plusOneSound.play()
+      }
+    }
+
+    async function gameLoop(){
+      if(!window.gameRunning)return;
+      if(window.gamePaused)return;
+      if(flashTimer>0)flashTimer--;
+
+      let move={x:0,y:0};
+      if(keys.ArrowLeft||keys.KeyA)move.x-=5;
+      if(keys.ArrowRight||keys.KeyD)move.x+=5;
+      if(keys.ArrowUp||keys.KeyW)move.y-=5;
+      if(keys.ArrowDown||keys.KeyS)move.y+=5;
+      humanLastMove=move;
+
+      if(humanAlive){
+        humanPos.x+=move.x;humanPos.y+=move.y;
+        humanPos.x=Math.max(margin,Math.min(humanPos.x,envInstance.width-margin));
+        humanPos.y=Math.max(margin,Math.min(humanPos.y,envInstance.height-margin))
+      }
+
+      if(botAlive){
+        let obs=getObservationForAgent(envInstance,botPos);
+        let action=await botAgent.selectAction(obs),botMove={x:0,y:0};
+        switch(action){
+          case 1:botMove.x-=5;break;
+          case 2:botMove.x+=5;break;
+          case 3:botMove.y-=5;break;
+          case 4:botMove.y+=5;break;
+          case 5:botMove.x-=5;botMove.y-=5;break;
+          case 6:botMove.x-=5;botMove.y+=5;break;
+          case 7:botMove.x+=5;botMove.y-=5;break;
+          case 8:botMove.x+=5;botMove.y+=5;break
+        }
+        botPos.x+=botMove.x;botPos.y+=botMove.y;
+        botPos.x=Math.max(margin,Math.min(botPos.x,envInstance.width-margin));
+        botPos.y=Math.max(margin,Math.min(botPos.y,envInstance.height-margin))
+      }
+
+      updateAsteroids(envInstance);
+
+      if(humanAlive&&flashTimer===0&&checkCollision(envInstance,humanPos)){
+        collisionSound.play();
+        if(lives<=1){
+          lives=0;humanAlive=false;humanExploded=true;humanExplosionTimer=explosionDuration
+        }else{lives--;flashTimer=120}
+      }
+
+      if(botAlive&&checkCollision(envInstance,botPos)){
+        collisionSound.play();botAlive=false;botExploded=true;botExplosionTimer=explosionDuration;botWinTime=Date.now()
+      }
+
+      globalSteps++;
+
+      if(globalSteps>=nextExtraLifeScore){
+        if(lives<maxLives&&!extraLifeAnim.active){
+          extraLifeAnim.active=true;
+          extraLifeAnim.startX=humanPos.x;extraLifeAnim.startY=humanPos.y;
+          extraLifeAnim.x=humanPos.x;extraLifeAnim.y=humanPos.y;
+          extraLifeAnim.targetX=80;extraLifeAnim.targetY=5;
+          extraLifeAnim.time=0;extraLifeAnim.totalTime=120;extraLifeAnim.trail=[];
+          heartPathSound.currentTime=0;heartPathSound.play()
+        }
+        nextExtraLifeScore+=5000
+      }
+      if(extraLifeAnim.active)updateExtraLifeAnim();
+
+      renderGame();
+
+      if(botWinTime&&Date.now()-botWinTime>winMessageDuration)botWinTime=null;
+
+      if(!humanAlive&&!humanExploded&&humanExplosionTimer<=0){
+        window.gameRunning=false;window.gameOver=true;showGameOver()
+      }
+
+      if(window.gameRunning)gameLoopId=setTimeout(gameLoop,intervalMs)
+    }
+
+    function renderGame(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle="#000";ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      if(envInstance.stars){
+        ctx.fillStyle="#fff";
+        for(let s of envInstance.stars){ctx.beginPath();ctx.arc(s.x,s.y,2,0,2*Math.PI);ctx.fill()}
+      }
+
+      for(let a of envInstance.asteroids){
+        if(asteroidImg.complete)ctx.drawImage(asteroidImg,a.x-asteroidWidth/2,a.y-asteroidHeight/2,asteroidWidth,asteroidHeight);
+        else{ctx.fillStyle="grey";ctx.beginPath();ctx.arc(a.x,a.y,envInstance.asteroidRadius,0,2*Math.PI);ctx.fill()}
+      }
+
+      if(botAlive){
+        if(botImg.complete)ctx.drawImage(botImg,botPos.x-spaceshipWidth/2,botPos.y-spaceshipHeight/2,spaceshipWidth,spaceshipHeight);
+        else{ctx.fillStyle="cyan";ctx.beginPath();ctx.arc(botPos.x,botPos.y,envInstance.agentRadius,0,2*Math.PI);ctx.fill()}
+      }else if(botExploded&&botExplosionTimer>0){
+        if(explosionImg.complete)ctx.drawImage(explosionImg,botPos.x-explosionWidth/2,botPos.y-explosionHeight/2,explosionWidth,explosionHeight);
+        botExplosionTimer--;if(botExplosionTimer<=0)botExploded=false
+      }
+
+      if(humanAlive){
+        let drawHuman=true;
+        if(flashTimer>0){
+          let e=120-flashTimer;
+          drawHuman=e<30?e%6<3:(e-30)%20<10
+        }
+        if(drawHuman){
+          if(spaceshipImg.complete)ctx.drawImage(spaceshipImg,humanPos.x-spaceshipWidth/2,humanPos.y-spaceshipHeight/2,spaceshipWidth,spaceshipHeight);
+          else{ctx.fillStyle="lime";ctx.beginPath();ctx.arc(humanPos.x,humanPos.y,envInstance.agentRadius,0,2*Math.PI);ctx.fill()}
+        }
+      }else if(humanExploded&&humanExplosionTimer>0){
+        if(explosionImg.complete)ctx.drawImage(explosionImg,humanPos.x-explosionWidth/2,humanPos.y-explosionHeight/2,explosionWidth,explosionHeight);
+        humanExplosionTimer--;
+        if(humanExplosionTimer<=0){
+          humanExploded=false;
+          if(!humanAlive){window.gameRunning=false;window.gameOver=true;showGameOver()}
+        }
+      }
+
+      ctx.textBaseline="top";ctx.font="28px Digital80s";ctx.fillStyle="red";ctx.textAlign="left";
+      ctx.fillText("Lives: "+("♥ ".repeat(lives)),10,5);
+
+      ctx.fillStyle="#fff";ctx.textAlign="right";
+      ctx.fillText("Score: "+globalSteps,canvas.width-10,5);
+
+      if(extraLifeAnim.active&&extraLifeAnim.trail.length){
+        for(let i=0;i<extraLifeAnim.trail.length;i++){
+          let alpha=(i+1)/extraLifeAnim.trail.length*.5;
+          ctx.fillStyle=`rgba(255,0,0,${alpha})`;
+          ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`${20+i*2}px Digital80s`;
+          ctx.fillText("♥",extraLifeAnim.trail[i].x,extraLifeAnim.trail[i].y)
+        }
+        ctx.fillStyle="red";ctx.font="34px Digital80s";
+        ctx.fillText("♥",extraLifeAnim.x,extraLifeAnim.y);
+        ctx.font="28px Digital80s";ctx.textBaseline="top"
+      }
+
+      if(botWinTime&&Date.now()-botWinTime<winMessageDuration){
+        ctx.fillStyle="lime";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="36px Digital80s";
+        ctx.fillText("You Beat the Bot!",canvas.width/2,canvas.height/2);ctx.textBaseline="top"
+      }
+    }
+
+    function resizeCanvas(){
+      const fixedMultiplier=1.15,maxScale=Math.min(window.innerWidth/600,window.innerHeight/400),
+            scaleFactor=Math.min(fixedMultiplier,maxScale);
+      canvas.style.transform="scale("+scaleFactor+")";
+      canvasContainer.style.width=600*scaleFactor+"px";canvasContainer.style.height=400*scaleFactor+"px"
+    }
+    window.addEventListener("resize",resizeCanvas);resizeCanvas();
+
+    window.pauseGame=function(){
+      if(!window.gameRunning||window.gamePaused)return;
+      window.gamePaused=true;gameMusic.pause();pauseOverlay.style.display="flex"
+    };
+    window.resumeGame=function(){
+      if(!window.gamePaused)return;pauseOverlay.style.display="none";startResumeCountdown()
+    };
+    function startResumeCountdown(){
+      if(typeof window.showCountdown==="function"){
+        window.countdownActive=true;
+        window.showCountdown(3,()=>{window.countdownActive=false;actuallyResumeGame()})
+      }else actuallyResumeGame()
+    }
+    function actuallyResumeGame(){
+      window.gamePaused=false;
+      if(!window.gameOver){
+        window.gameRunning=true;gameMusic.play();gameLoop()
+      }
+    }
+
+    showInstructions();
+  </script>
+
+  <script src="countdown.js"></script>
+  <script src="replayButton.js"></script>
+
+  <script>
+    function isMobileDevice(){return"ontouchstart"in window||/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)}
+    if(isMobileDevice()){
+      const mobileControls=document.getElementById("mobileControls");mobileControls.style.display="block";
+      const handleStart=k=>e=>{e.preventDefault();keys[k]=true};
+      const handleEnd=k=>e=>{e.preventDefault();keys[k]=false};
+      mobileUp.addEventListener("touchstart",handleStart("ArrowUp"),{passive:false});
+      mobileUp.addEventListener("touchend",handleEnd("ArrowUp"));
+      mobileLeft.addEventListener("touchstart",handleStart("ArrowLeft"),{passive:false});
+      mobileLeft.addEventListener("touchend",handleEnd("ArrowLeft"));
+      mobileDown.addEventListener("touchstart",handleStart("ArrowDown"),{passive:false});
+      mobileDown.addEventListener("touchend",handleEnd("ArrowDown"));
+      mobileRight.addEventListener("touchstart",handleStart("ArrowRight"),{passive:false});
+      mobileRight.addEventListener("touchend",handleEnd("ArrowRight"));
+      mobileEnter.addEventListener("touchstart",e=>{
+        e.preventDefault();
+        if(window.gameRunning&&!window.countdownActive){endCurrentGame();startCountdown()}
+        else if(!window.gameRunning&&!window.countdownActive){
+          if(instructionOverlay.style.display!=="none")hideInstructions();
+          else if(gameOverOverlay.style.display!=="none")gameOverOverlay.style.display="none";
+          startCountdown()
+        }
+        if(clickSound)clickSound.play()
+      },{passive:false})
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+@font-face {
+    font-family: 'Digital80s';
+    src: url('assets/digital80s.otf') format('opentype');
+  }
+  
+  /* Center the canvas container on the screen */
+  body {
+    margin: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Digital80s', Arial, sans-serif;
+    position: relative;
+  }
+  
+  /* The container holds the canvas and overlays */
+  #canvasContainer {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    border: 4px solid #fff;
+  }
+  
+  /* High score display */
+  #highScoreDisplay {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-family: 'Digital80s', Arial, sans-serif;
+    font-size: 28px;
+    z-index: 15;
+    display: none;
+    user-select: none;
+  }
+  
+  /* Canvas remains 600x400 */
+  #gameCanvas {
+    width: 600px;
+    height: 400px;
+    image-rendering: pixelated;
+    transform-origin: top left;
+  }
+  
+  /* Overlay styles */
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 10;
+    flex-direction: column;
+    padding: 40px;
+    box-sizing: border-box;
+    user-select: none;
+  }
+  
+  /* Inner container for text */
+  .overlay-content {
+    max-width: 500px;
+    width: 100%;
+    padding: 0px;
+  }
+  
+  /* Instruction text */
+  .overlay-content p {
+    margin: 0px 0;
+    font-family: 'Digital80s', Arial, sans-serif;
+  }
+  
+  /* Key styling for a horizontal row - slightly smaller */
+  .key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    background: #222;
+    color: #fff;
+    font-size: 36px;
+    font-family: 'Digital80s', Arial, sans-serif;
+    margin: 0 8px;
+    animation: press 1s infinite;
+  }
+  
+  /* Staggered delays */
+  #keyLeft { animation-delay: 0s; }
+  #keyUp   { animation-delay: 0.25s; }
+  #keyRight{ animation-delay: 0.5s; }
+  #keyDown { animation-delay: 0.75s; }
+  
+  @keyframes press {
+    0% {
+      transform: scale(1);
+    }
+    20% {
+      transform: scale(0.95) translateY(4px);
+    }
+    40% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  /* Container for keys */
+  #keyRow {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  
+  /* A flex row for final line: images on left/right, text in center */
+  .final-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  
+  .ship-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+  }
+  
+  .ship-box img {
+    width: 80px;
+    height: auto;
+  }
+  
+  .ship-box span {
+    font-size: 25px;
+    margin-top: 0px;
+  }
+  
+  /* Game over overlay */
+  #gameOverOverlay {
+    flex-direction: column;
+  }
+  
+  #gameOverOverlay #gameOverTitle {
+    font-size: 72px;
+    font-family: 'Digital80s', Arial, sans-serif;
+    color: red;
+    margin: 0;
+  }
+  
+  #gameOverOverlay #restartText {
+    font-size: 24px;
+    font-family: 'Digital80s', Arial, sans-serif;
+    color: white;
+    margin-top: 10px;
+  }
+  
+  /* --------------------------------------------------
+     80s Digital Icon Styling for a Retro Look
+  ----------------------------------------------------- */
+  .icon {
+    shape-rendering: crispEdges;
+    filter: drop-shadow(2px 2px 0 #855a5a);
+  }
+  
+  .icon path {
+    stroke-width: 3px;
+    stroke-linejoin: miter;
+  }
+  
+  @keyframes flashText {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  
+  .flash {
+    animation: flashText 2s infinite;
+  }
